@@ -51,17 +51,15 @@ def links(serie):
                 print("Hubo un problema al intentar acceder a la pagina del anime")
             with open("register_log.json", "r") as file:
                 reg_log = json.load(file)
-            if not name in reg_log["animes"]:
-                reg_log["animes"][name] = {}
+            reg_log['animes'].get(name, {})
             ongoing = {name:{}}
             first_chap = int(input("Primer capitulo a descargar: "))
             final_chap = int(input("Ultimo capitulo: "))
-            final_chap += 1
             if anime.status_code != 200:
                 print("Al parecer hay un error en el nombre, intenta de nuevo")
                 return [False, None, None, None]
             else:
-                for i in range(first_chap,final_chap):
+                for i in range(first_chap,final_chap+1):
                     try:
                         chapter = rq.get("https://animeflv.net/ver/"+parsed_name+"-"+str(i))
                     except:
@@ -82,5 +80,5 @@ def links(serie):
                         ongoing[name][i] = link
             json.dump(reg_log,open("register_log.json","w+"), indent = 4)
             return [True, l[0], name, first_chap, final_chap, ongoing]
-    except:
-        print("Hubo un problema con la busqueda")
+    except Exception as e:
+        print("Hubo un problema con la busqueda", e)

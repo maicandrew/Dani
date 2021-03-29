@@ -2,6 +2,7 @@
 import links
 import downloads
 from os import path, mkdir, system
+from pathlib import Path
 import json
 
 #Para obtener el directorio en línea de comando:
@@ -10,7 +11,7 @@ import json
 #a.withdraw()
 #dest_folder = fd.askdirectory()
 #a.destroy()
-dest_folder = "/home/makiol/Descargas/Anime/"
+dest_folder = Path("/home/makiol/Descargas/Anime/")
 
 def init_files():
     if not path.isfile("current_download"):
@@ -30,7 +31,7 @@ def normal_download():
         serie = input("Serie: ")
         anime_info = links.links(serie)
     if anime_info[0]:
-        full_path = dest_folder+anime_info[1][7:]
+        full_path = dest_folder / anime_info[1][7:]
         with open("current_download","w+") as cur:
             json.dump(anime_info, cur, indent = 4)
         if not path.exists(full_path):
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         if ans == "y" or ans == "Y":
             anime_info = ongoing
             e = anime_info[5][anime_info[2]]
-            for enum in range(anime_info[3],anime_info[4]):
+            for enum in range(anime_info[3],anime_info[4]+1):
                 downloads.download(e[str(enum)], anime_info[1][7:], enum, dest_folder)
             open("current_download","w+").close()
         else:
