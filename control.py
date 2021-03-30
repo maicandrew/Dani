@@ -1,65 +1,69 @@
 #!/usr/bin/python3
 import links
 import downloads
-from os import path, mkdir, system
+from os import path, mkdir, system, remove, name as os_name
 from pathlib import Path
 import json
 
-#Para obtener el directorio en línea de comando:
+# Para obtener el directorio en línea de comando:
 #from tkinter import Tk, filedialog as fd
 #a = Tk()
-#a.withdraw()
+# a.withdraw()
 #dest_folder = fd.askdirectory()
-#a.destroy()
-dest_folder = Path("/home/makiol/Descargas/Anime/")
+# a.destroy()
+
+if os_name == 'nt':
+    dest_folder = Path('C:\\Users\\maicol\\Downloads\\Series\\')
+else:
+    dest_folder = Path('/home/makiol/Descargas/Anime/')
+current_download_file = 'current_download.json'
+register_log_file = 'register_log.json'
+
 
 def init_files():
-    if not path.isfile("current_download"):
-        file = open("current_download", "w+")
-        file.write("{}")
-        file.close()
+    '''Initializes files in case they do not exist'''
+    if not path.isfile(current_download_file):
+        with open(current_download_file, "w+") as cur_down:
+            cur_down.write("{}")
 
     if not path.isfile("register_log.json"):
         dr = {}
-        dr["animes"] = {}
-        with open("register_log.json","w+") as reg_log:
-            json.dump(dr,reg_log,indent=4)
+        dr['animes'] = {}
+        with open(register_log_file, "w+") as reg_log:
+            json.dump(dr, reg_log, indent=4)
 
-def normal_download():
-    anime_info = None
-    while anime_info == None:
-        serie = input("Serie: ")
-        anime_info = links.links(serie)
-    if anime_info[0]:
-        full_path = dest_folder / anime_info[1][7:]
-        with open("current_download","w+") as cur:
-            json.dump(anime_info, cur, indent = 4)
-        if not path.exists(full_path):
-            mkdir(full_path)
-        e = anime_info[5][anime_info[2]]
-        for enum in range(anime_info[3],anime_info[4]+1):
-            downloads.download(e[enum], anime_info[1][7:], enum, dest_folder)
-        with open("current_download","w+") as ff1:
-            ff1.write("{}")
 
 if __name__ == "__main__":
     init_files()
-    with open("current_download","r") as ong:
-        try:
-            ongoing = json.load(ong)
-        except json.decoder.JSONDecodeError:
-            ongoing = {}
+    with open(current_download_file, "r") as ong:
+        ongoing = json.load(ong)
     if ongoing == {}:
-        normal_download()
+        serie = input('Serie: ')
+        success = links.links(serie)
+        if not success:
+            raise Exception
     else:
-        ans = input("¿Desea continuar la descarga anterior?(y/n): ")
-        while not ans in ["y","Y","n","N"]:
+        ans = input(
+            f"¿Desea continuar con la descarga de {ongoing['name']}?(y/n): ")
+        while not ans in ["y", "Y", "n", "N"]:
             ans = input("(y/n): ")
-        if ans == "y" or ans == "Y":
-            anime_info = ongoing
-            e = anime_info[5][anime_info[2]]
-            for enum in range(anime_info[3],anime_info[4]+1):
-                downloads.download(e[str(enum)], anime_info[1][7:], enum, dest_folder)
-            open("current_download","w+").close()
-        else:
-            normal_download()
+        if not (ans == "y" or ans == "Y"):
+            remove(current_download_file)
+            serie = input('Serie: ')
+            success = links.links(serie)
+            if not success:
+                raise Exception
+    with open(current_download_file, 'r') as cur:
+        anime_info = json.load(cur)
+    full_path = dest_folder / anime_info['parsed_name']
+    if not path.exists(full_path):
+        mkdir(full_path)
+    chapters = anime_info['chapters']
+    for enum in range(anime_info['first'], anime_info['last']+1):
+        downloads.download(
+            chapters[str(enum)],
+            anime_info['parsed_name'],
+            enum,
+            dest_folder
+        )
+    remove(current_download_file)
