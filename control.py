@@ -1,9 +1,9 @@
 #!/usr/bin/python3
+import json
+from pathlib import Path
+from os import path, mkdir, system, remove, name as os_name
 import links
 import downloads
-from os import path, mkdir, system, remove, name as os_name
-from pathlib import Path
-import json
 
 # Para obtener el directorio en línea de comando:
 #from tkinter import Tk, filedialog as fd
